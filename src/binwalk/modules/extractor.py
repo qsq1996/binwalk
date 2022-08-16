@@ -832,7 +832,9 @@ class Extractor(Module):
             bname = os.path.basename(output_file_name)
 
         fname = unique_file_name(bname, extension)
-
+        
+        fdin = None
+        fdout = None
         try:
             # If byte swapping is enabled, we need to start reading at a swap-size
             # aligned offset, then index in to the read data appropriately.
@@ -875,8 +877,16 @@ class Extractor(Module):
             # Make sure run-as user can access this file
             os.chown(fname, self.runas_uid, self.runas_gid)
         except KeyboardInterrupt as e:
+            if fdin:
+                fdin.close()
+            if fdout:
+                fdout.close()
             raise e
         except Exception as e:
+            if fdin:
+                fdin.close()
+            if fdout:
+                fdout.close()
             raise Exception("Extractor.dd failed to extract data from '%s' to '%s': %s" %
                             (file_name, fname, str(e)))
 
